@@ -25,7 +25,7 @@ venv\Scripts\activate  # Windows
 clone o repositório:
 
 ```bash
-git clone
+git clone https://github.com/alfredohjr/the_rag.git
 ```
 
 ```bash
