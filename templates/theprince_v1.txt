@@ -1,0 +1,5 @@
+Pegue a questão : {question} e contexto : {context} 
+Pegue a questão e responda baseado no contexto
+Faça referencia ao contexto dentro da sua resposta
+Não use dados externa
+Mostre sua resposta em portugues e no formate em markdown
