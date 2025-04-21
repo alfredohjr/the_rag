@@ -1,10 +1,10 @@
-## the_rag
+# the_rag
 
 Esse projeto é um estudo de como um RAG funciona, neste momento só funciona via linha de comando, um projeto relativamente pequeno mas totalmente funcional.
 
 O projeto inicial já tem o livro "O principe" de Maquiavel compilado e pronto para ser usado.
 
-# O RAG
+## O RAG
 
 O RAG(Open Retrieval-Augmented Generation) é uma abordagem de geração de texto que combina a recuperação de informações com a geração de linguagem natural. O objetivo é melhorar a qualidade e a relevância das respostas geradas por modelos de linguagem, utilizando informações externas(arquivos txt, pdf e etc) para enriquecer o contexto da geração.
 
