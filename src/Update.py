@@ -1,12 +1,12 @@
 import datetime
 import os
-from langchain_community.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer
 
 
 from .Load import load_model
 from .Config import config_load
 from .LoadDocuments import load_documents
+from .Metadata import get_metadata
 
 def vector_store_update():
 
@@ -18,9 +18,7 @@ def vector_store_update():
     model_name = config["DEFAULT"]["The_model"]
     path_documents = f"tmp/{model_name}_documents"
 
-    all_docs = vector_store.docstore._dict.values()
-
-    sources = set([doc.metadata["source"] for doc in all_docs])
+    metadatas = get_metadata(vector_store)
 
     files = []
     for file in os.listdir(path_documents):
@@ -28,7 +26,7 @@ def vector_store_update():
         if os.path.isdir(f"{path_documents}/{file}"):
             continue
 
-        if f"{path_documents}/{file}" in sources:
+        if '.'.join(file.split('.')[:-1]) in metadatas['sources']:
             continue
 
         files.append(file)
@@ -47,12 +45,10 @@ def vector_store_update():
     metadata = [x.metadata for x in data["documents"]]
 
     text_embeddings = embeddings.encode(texts, batch_size=64, show_progress_bar=True)
+    text_embeddings = list(zip(texts,text_embeddings.tolist()))
+
+    vector_store.add_embeddings(text_embeddings=text_embeddings, metadatas=metadata)
     
-    text_embedding_pairs = list(zip(texts, text_embeddings))
-    vector_store_2 = FAISS.from_embeddings(text_embedding_pairs, embeddings, metadatas=metadata)
-
-    vector_store.merge_from(vector_store_2)
-
     finish = datetime.datetime.now()
 
     print("começo ->",start,"término ->", finish)

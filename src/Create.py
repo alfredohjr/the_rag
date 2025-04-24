@@ -4,6 +4,7 @@ from langchain_community.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer
 
 from .LoadDocuments import load_documents
+from .Metadata import get_metadata
 
 def vector_store_create():
 

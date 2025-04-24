@@ -7,6 +7,7 @@ from langchain_core.documents import Document
 from .Config import config_load
 from .LoadPDFs import pdfs_load_to_text
 from .LoadCSVs import load_csv_to_text
+from .Metadata import get_metadata
 
 def load_documents(files:list=None):
 
@@ -55,11 +56,13 @@ def load_documents(files:list=None):
 
         print(f"{len(chunks)} chunks gerados.")
 
+        file = '.'.join(file.split('.')[:-1])
+
         for chunk in chunks:
             documents.append(
                 Document(
                     page_content=chunk,
-                    metadata={"source": f"{documents_dir}/{file}"},
+                    metadata={"source": file},
                 )
             )
 
@@ -67,17 +70,9 @@ def load_documents(files:list=None):
 
     uuids = [str(uuid4()) for _ in range(len(documents))]
 
-    if debug == 'true':
-        print(documents[:3])
-
     print("Total",len(documents))
 
     return {
         'documents' : documents,
         'ids' : uuids
     }
-
-
-if __name__ == "__main__":
-
-    load_documents_create()

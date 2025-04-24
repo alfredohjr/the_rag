@@ -50,6 +50,12 @@ depois disso é criado um diretório dentro da pasta `tmp` com o nome `[nome do 
 
 O procedimento aceita arquivos txt, pdf ou csv.
 
+Para gerar a base de dados, utilize o seguinte comando:
+
+```bash
+python main.py -o save
+```
+
 depois disso você deve definir o projeto como padrão, para isso utilize o seguinte comando:
 
 ```bash
@@ -105,6 +111,34 @@ prompt_template_file = [nome do arquivo]
 
 Neste caso, coloque o arquivo de template dentro da pasta templates, copie o arquivo `templates/prompt_template.txt` e renomeie para o nome do arquivo que você deseja usar.
 Ele deve ter as chaves `{question}` e `{context}` para funcionar corretamente.
+
+### Para salvar os documentos em arquivos separados
+
+Pode ser util ter os documentos separados e fazer a combinação deles em diferentes pastas para obter resultados mais precisos.
+
+Para fazer a separação dos documentos, utilize o seguinte comando:
+
+```bash
+python main.py -o split
+```
+
+Para usar os documentos em outras pastas adicione a chave `documents` dentro da pasta desejada no arquivo `config.ini`:
+
+```ini
+documents = doc1|doc2|doc3
+```
+
+onde `doc1`, `doc2` e `doc3` são os nomes dos arquivos que você deseja usar como base de consulta, separados por `|`.
+
+Para sincronizar os documentos, utilize o seguinte comando:
+
+```bash
+python main.py -o merge
+```
+
+Obs.: O comando vai sincronizar somente a pasta DEFAULT, ou seja, a pasta que está definida no arquivo `config.ini`.
+
+Um arquivo é gerado na pasta `tmp` com o nome `vector_files` com o nome dos arquivos disponíveis.
 
 ### Adicionar comandos para a LLM
 

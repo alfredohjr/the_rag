@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from src import manual_ask, auto_task, save_model, config_load
+from src import manual_ask, auto_task, save_model, config_load, vector_store_split_database, vector_store_merge_database
 
 if __name__ == "__main__":
 
@@ -43,5 +43,9 @@ if __name__ == "__main__":
             manual_ask()
         else:
             auto_task(args.file)
+    elif args.option == 'split':
+        vector_store_split_database()
+    elif args.option == 'merge':
+        vector_store_merge_database()
     elif args.option == 'save':
         save_model(args.save_option)

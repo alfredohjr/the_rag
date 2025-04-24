@@ -4,3 +4,5 @@ amb
 tmp
 
 .env
+
+templates/*
