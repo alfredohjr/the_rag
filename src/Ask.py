@@ -2,6 +2,7 @@ import os
 import datetime
 from google import genai
 from dotenv import load_dotenv
+import time
 
 load_dotenv()
 
@@ -9,6 +10,16 @@ from .Load import load_model
 from .Config import config_load
 
 config = config_load()
+
+
+def print_slow(text, delay=0.075):
+    for char in text:
+        print(char, end='', flush=True)
+        time.sleep(delay)
+    print('\n') 
+
+def get_token(text):
+    print('Token por palavra', len(text.split()))
 
 def now():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -24,7 +35,11 @@ def load_prompt(question, context):
     with open(f'templates/{file_template}','r') as f:
         text = f.read()
 
-    return text.format(question=question,context=context)
+    text = text.format(question=question,context=context)
+
+    get_token(text)
+
+    return text
 
 def ask_get(question=None):
 
@@ -105,7 +120,7 @@ def manual_ask(save_data=True):
             continue
 
         response = ask_to_gemini(question)
-        print(response['response'])
+        print_slow(response['response'])
         context = response['context']
         response = response['response']
 
