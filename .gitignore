@@ -6,3 +6,5 @@ tmp
 .env
 
 templates/*
+
+*.db
