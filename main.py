@@ -1,7 +1,16 @@
 import argparse
 import os
+import subprocess
 
-from src import manual_ask, auto_task, save_model, config_load, vector_store_split_database, vector_store_merge_database
+from src import (
+    manual_ask, 
+    auto_task, 
+    save_model, 
+    config_load, 
+    vector_store_split_database, 
+    vector_store_merge_database,
+    telegram_run,
+)
 
 if __name__ == "__main__":
 
@@ -49,3 +58,7 @@ if __name__ == "__main__":
         vector_store_merge_database()
     elif args.option == 'save':
         save_model(args.save_option)
+    elif args.option == 'telegram':
+        telegram_run()
+    elif args.option == 'server':
+        subprocess.run(["streamlit", "run", "server.py"], cwd=os.getcwd())

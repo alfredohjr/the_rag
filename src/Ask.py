@@ -1,8 +1,14 @@
 import os
 import datetime
+import time
 from google import genai
 from dotenv import load_dotenv
+<<<<<<< HEAD
 import time
+=======
+from google.genai import types
+
+>>>>>>> cf31f1b37279fbb030bb68a2384d8746e4119316
 
 load_dotenv()
 
@@ -24,6 +30,15 @@ def get_token(text):
 def now():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
+def count_token(text):
+    print('Tokens[palavras]',len(text.split()))
+
+def print_slow(text,delay=.075):
+    for t in text:
+        print(t,end='',flush=True)
+        time.sleep(delay)
+
+
 def load_prompt(question, context):
 
     model = config["DEFAULT"]["The_model"]
@@ -37,9 +52,6 @@ def load_prompt(question, context):
 
     text = text.format(question=question,context=context)
 
-    get_token(text)
-
-    return text
 
 def ask_get(question=None):
 
@@ -54,7 +66,7 @@ def ask_get(question=None):
         print(f"{index+1} * {res.page_content} [{res.metadata}]")
 
 
-def ask_to_gemini(question=None):
+def ask_to_gemini(question=None, history:list=None):
 
     gemini_api_key = os.getenv('gemini_api_key')
     if gemini_api_key is None:
@@ -87,9 +99,30 @@ def ask_to_gemini(question=None):
 
         context += result.replace('\n',' ') + '\n\n'
 
+    content = []
+    if history is not None:
+        for h in history[-5:]:
+            content.append(
+                types.Content(
+                    role=h[1],
+                    parts=[
+                        types.Part.from_text(text=h[2]),
+                    ],
+                )
+            )
+    
+    content.append(
+        types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=load_prompt(question, context)),
+                ],
+        )
+    )
+
     response = client.models.generate_content(
         model="gemini-2.0-flash",
-        contents=load_prompt(question, context),
+        contents=content,
     )
 
     return {
