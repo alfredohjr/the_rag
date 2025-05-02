@@ -13,7 +13,6 @@ from .Config import config_load
 
 config = config_load()
 
-
 def print_slow(text, delay=0.075):
     for char in text:
         print(char, end='', flush=True)
@@ -47,6 +46,7 @@ def load_prompt(question, context):
         text = f.read()
 
     text = text.format(question=question,context=context)
+    return text
 
 
 def ask_get(question=None):
@@ -115,6 +115,14 @@ def ask_to_gemini(question=None, history:list=None):
                 ],
         )
     )
+
+    print('load_prompt', load_prompt(question, context))
+
+    for c in content:
+        print('>'*25,c)
+
+    print('context', context)
+    print('ask', question)
 
     response = client.models.generate_content(
         model="gemini-2.0-flash",
