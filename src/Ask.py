@@ -3,12 +3,8 @@ import datetime
 import time
 from google import genai
 from dotenv import load_dotenv
-<<<<<<< HEAD
 import time
-=======
 from google.genai import types
-
->>>>>>> cf31f1b37279fbb030bb68a2384d8746e4119316
 
 load_dotenv()
 
