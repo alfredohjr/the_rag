@@ -6,10 +6,11 @@ from langchain_community.docstore.in_memory import InMemoryDocstore
 
 from .Config import config_load
 
-def load_model() -> FAISS:
+def load_model(model_name:str=None) -> FAISS:
 
-    config = config_load()
-    model_name = config["DEFAULT"]["The_model"]
+    if model_name is None:
+        config = config_load()
+        model_name = config["DEFAULT"]["The_model"]
 
     folder = 'tmp'
 

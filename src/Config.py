@@ -43,3 +43,41 @@ def list_chat_in_projects(project, file="config.ini"):
     for i in os.listdir(path):
         new_list.append(i)
     return new_list
+
+def list_file_extensions_allowed():
+
+    return ['txt','csv','pdf']
+
+def get_key(key, path="DEFAULT", file='config.ini'):
+
+    config.read(file)
+
+    if path not in config:
+        return None
+    
+    if key not in config[path]:
+        return None
+    
+    return config[path].get(key, None)
+
+def get_debug():
+
+    v = get_key('debug')
+    if v is None:
+        return False
+    
+    if v.lower() == 'true':
+        return True
+    return False
+
+
+def get_alias():
+
+    aliases = []
+    for file in os.listdir('tmp'):
+        if not file.endswith('_faiss_index'):
+            continue
+        if not os.path.isdir(f'tmp/{file}'):
+            continue
+        aliases.append(file.replace('_faiss_index',''))
+    return aliases

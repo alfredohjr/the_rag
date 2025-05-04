@@ -15,7 +15,6 @@ def load_documents(files:list=None):
 
     model_name = config["DEFAULT"]["The_model"]
     tmp_dir = 'tmp'
-    debug = config["DEFAULT"]["debug"]
 
     documents_dir = f"{tmp_dir}/{model_name}_documents"
 

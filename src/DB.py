@@ -4,6 +4,9 @@ import datetime
 
 from .Metadata import get_metadata
 from .Load import load_model
+from .Config import get_debug, get_alias
+
+DEBUG = get_debug()
 
 DB_FILE = 'the_rag.db'
 
@@ -17,19 +20,50 @@ def check_database():
     create_chat = """create table if not exists rag_chat(id varchar(50), name varchar(50) unique, active boolean default true, project_id varchar(50), created_at datetime, updated_at datetime)"""
     create_history = """create table if not exists rag_chat_history(id varchar(50), chat_id varchar(50), role varchar(30), content text, context text, active boolean default true, score int default -1, created_at datetime, updated_at datetime)"""
 
+    migration_1 = [create_project, create_vector, create_project_vector, create_chat, create_history]
+
+    create_config = """create table if not exists rag_config(key varchar(100) unique, value text, description text, active boolean default true, created_at datetime, updated_at datetime)"""
+    create_log = """create table if not exists rag_log(key varchar(100) unique, value text, active boolean default true, created_at datetime, updated_at datetime)"""
+    add_column_project_prompt = """alter table rag_project add column prompt text"""
+    add_column_chat_k = """alter table rag_chat add column k int default 5"""
+    add_column_chat_history = """alter table rag_chat add column history int default 20"""
+
+    migration_2 = [create_config, create_log, add_column_project_prompt, add_column_chat_k, add_column_chat_history]
+    migration_2 += migration_1
+
+    add_column_config_id = """alter table rag_config add column id varchar(50)"""
+    add_column_log_id = """alter table rag_log add column id varchar(50)"""
+
+    migration_3 = [add_column_config_id, add_column_log_id]
+    migration_3 += migration_2
+
+    add_column_project_save_json = """alter table rag_project add column save_json boolean default 1"""
+
+    migration_4 = [add_column_project_save_json]
+    migration_4 += migration_3
+
+    add_column_project_alias_folder = """alter table rag_project add column alias_folder varchar(50) default 'theprince'"""
+
+    migration_5 = [add_column_project_alias_folder]
+    migration_5 += migration_4
+
+    migrations = migration_5
+
     cur = con.cursor()
-    for command in [create_project, create_vector, create_project_vector, create_chat, create_history]:
-        cur.execute(command)
+    for command in migrations:
+        try:
+            cur.execute(command)
+        except Exception as e:
+            print(e)
     cur.close()
     con.close()
 
-def create(table,obj,prefix='rag_'):
-
-    check_database()
+def create(table,obj,prefix='rag_',use_id=True):
 
     con = sqlite3.connect(DB_FILE)
 
-    obj["id"] = str(uuid4())
+    if use_id:
+        obj["id"] = str(uuid4())
     obj["created_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     obj["updated_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -46,25 +80,20 @@ def create(table,obj,prefix='rag_'):
 
 def update(table, obj, obj_id, prefix='rag_'):
 
-    if table in ['rag_chat_history']:
-        return None
-
-    check_database()
-
     con = sqlite3.connect(DB_FILE)
 
     obj["updated_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     list_update = []
-    for o in obj:
+    for o in obj.items():
         list_update.append(
             f"{o[0]} = '{o[1]}'"
         )
 
     list_update = ', '.join(list_update)
 
-    update_command = f"update {prefix}{table} set {list_update} where id = {obj_id}"
-
+    update_command = f"update {prefix}{table} set {list_update} where id = '{obj_id}' and active = 1"
+    
     cur = con.cursor()
     cur.execute(update_command)
     cur.execute('commit')
@@ -73,14 +102,13 @@ def update(table, obj, obj_id, prefix='rag_'):
 
 def get(table:str, where:dict=None, columns='*', prefix='rag_'):
 
-    check_database()
-
     con = sqlite3.connect(DB_FILE)
 
     list_update = []
     if where is None:
         list_update = ''
     else:
+        where['active'] = 1
         for o in where.items():
             list_update.append(
                 f"{o[0]} = '{o[1]}'"
@@ -99,10 +127,11 @@ def get(table:str, where:dict=None, columns='*', prefix='rag_'):
     return res_select
 
 
-def get_projects(columns='id, name', where:dict=None):
+def get_projects(columns='id, name, save_json, language, template_file, prompt, alias_folder', where:dict=None):
 
     res = get(table='project', columns=columns, where=where)
     return res
+
 
 def create_project(name):
 
@@ -114,7 +143,28 @@ def create_project(name):
     create(table='project', obj={'name':name})
 
 
-def get_chats(project_name:str, chat_name:str=None):
+def update_project(project_id:str, obj:dict):
+
+    update(table='project', obj_id=project_id, obj=obj)
+
+
+def get_alises_folders_and_id(project_info:dict=None):
+
+    aliases = get_alias()
+    alias_id = 0
+    count = 0
+    for a in aliases:
+        if project_info[0][6] == a:
+            alias_id = count
+            break
+        count += 1
+
+    return {
+        'aliases':aliases,
+        'alias_id':alias_id
+    }
+
+def get_chats(project_name:str, chat_name:str=None, columns='id, name, k, history'):
 
     project = get_projects(where={'name':project_name})
     if len(project) == 0:
@@ -128,7 +178,7 @@ def get_chats(project_name:str, chat_name:str=None):
         where = {}
         where['name'] = chat_name
         where['project_id'] = project[0][0]
-        return get(table='chat',where=where)
+        return get(table='chat',where=where,columns=columns)
 
 
 def create_chat(name:str, project:str):
@@ -144,9 +194,15 @@ def create_chat(name:str, project:str):
     return get_chats(project_name=project[0][1], chat_name=name)
 
 
+def update_chat(chat_id:str, obj:dict):
+
+    update('chat', obj_id=chat_id, obj=obj)
+
+
 def get_chat_history(chat_id:str):
 
-    return get(table='chat_history',columns='id, role, content', where={'chat_id':chat_id})
+    return get(table='chat_history',columns='id, role, content, context, score', where={'chat_id':chat_id})
+
 
 def create_chat_history(chat_id:str, role:str, content:str, context:str=None):
 
@@ -160,12 +216,17 @@ def create_chat_history(chat_id:str, role:str, content:str, context:str=None):
                 'content':content,
                 'context':context if context else ''})
     
+
+def update_chat_history(chat_id:str, obj:dict):
+
+    update('chat_history',obj_id=chat_id, obj=obj)
+
+
 def get_vetores():
+        
+        if get_debug():
+            return [f"Vector {x}" for x in range(10)]
+        
         vector_store = load_model()
         metadatas = get_metadata(vector_store)
         return metadatas['sources']
-
-
-
-create_project('NumeroUm')
-create_chat("NumeroUm","NumeroUm")

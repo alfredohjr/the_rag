@@ -15,7 +15,3 @@ def load_csv_to_text(file:str=None) -> str:
         text += text_tmp + '\n\n'
 
     return text
-
-if __name__ == "__main__":
-
-    load_csv_to_text()
