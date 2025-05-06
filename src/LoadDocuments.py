@@ -9,11 +9,12 @@ from .LoadPDFs import pdfs_load_to_text
 from .LoadCSVs import load_csv_to_text
 from .Metadata import get_metadata
 
-def load_documents(files:list=None):
+def load_documents(files:list=None, model_name:str=None):
 
-    config = config_load()
+    if model_name is None:
+        config = config_load()
+        model_name = config["DEFAULT"]["The_model"]
 
-    model_name = config["DEFAULT"]["The_model"]
     tmp_dir = 'tmp'
 
     documents_dir = f"{tmp_dir}/{model_name}_documents"
@@ -54,8 +55,6 @@ def load_documents(files:list=None):
         chunks = splitter.split_text(text)
 
         print(f"{len(chunks)} chunks gerados.")
-
-        file = '.'.join(file.split('.')[:-1])
 
         for chunk in chunks:
             documents.append(

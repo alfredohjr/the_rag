@@ -7,6 +7,7 @@ from .Load import load_model
 from .Save import model_save
 from .Config import config_load
 from .Metadata import get_metadata
+from .DB import get_project_vectors
 
 PATH = 'tmp/vector_files'
 
@@ -26,13 +27,12 @@ def vector_path_save_list_files():
     with open('tmp/vector_files.txt','w',encoding='utf-8') as f:
         f.write('\n'.join(vector_path_list_files()))
 
-def vector_store_split_database():
+def vector_store_split_database(model_name:str=None):
 
     if not os.path.isdir(PATH):
         os.makedirs(PATH)
 
-    vector_store = load_model()
-
+    vector_store = load_model(model_name)
     metadatas = get_metadata(vector_store)
 
     docs = metadatas['texts']
@@ -51,28 +51,34 @@ def vector_store_split_database():
     for name, chunks in group_by_file.items():
         name = name.split('/')[-1].split('.')[:-1]
         name = '.'.join(name)
-        with open(f"tmp/{name}.json", "w", encoding="utf-8") as f:
+        with open(f"{PATH}/{name}.json", "w", encoding="utf-8") as f:
             json.dump(chunks, f, ensure_ascii=False, indent=2)
 
 
-def vector_store_merge_database(database_files:list = None):
+def vector_store_merge_database(database_files:list = None, model_name:str=None):
 
     if not os.path.isdir(PATH):
         os.makedirs(PATH)
 
-    config = config_load()
-    model_name = config["DEFAULT"]["The_model"]
+    database_files = []
+    if model_name is None:
+        config = config_load()
+        model_name = config["DEFAULT"]["The_model"]
     
-    if 'documents' not in config[model_name]:
-        return None
+        if 'documents' not in config[model_name]:
+            return None
+        
+        database_files = config[model_name]['documents'].split('|')
+    else:
+        pass
+        #database_files = []
     
-    vector_store = load_model()
+    vector_store = load_model(model_name=model_name)
 
     metadatas = get_metadata(vector_store)
 
     all_sources = set(metadatas['sources'])
 
-    database_files = config[model_name]['documents'].split('|')
     path = 'tmp/vector_files'
     for file in database_files:
         full_file_path = f"{path}/{file}.json"
@@ -90,6 +96,17 @@ def vector_store_merge_database(database_files:list = None):
 
         vector_store.add_embeddings(text_embeddings=text_embeddings, metadatas=metadata)
 
-    model_save(vector_store=vector_store)
+    model_save(vector_store=vector_store, model_name=model_name)
 
     vector_path_save_list_files()
+
+def sinc_vector_db_by_database():
+
+    # pegar data de ultima atualização
+    # ver se tem projetos atualizados depois
+    # salvar! se precisar
+    # fazer o split, se precisar
+    # fazer o merge se precisar
+    # Atualizar valores
+
+    pass

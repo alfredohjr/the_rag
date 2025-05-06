@@ -131,7 +131,6 @@ def main_ask(question:str, project_info:list, chat_info:list, history:list=None)
         context += result.replace('\n',' ') + '\n\n'
 
     question = load_prompt(question, context, project_info)
-    print('q>', question)
     response = {}
     response['context'] = context
     response['response'] = main_ask_gemini(question=question, history=history)['response']

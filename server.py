@@ -17,11 +17,13 @@ from src.DB import (
     update_chat,
     update_chat_history,
     get_alises_folders_and_id,
+    get_vectors,
+    sinc_unique_project_vector,
 )
 
 check_database()
 
-vectors = get_vetores()
+vectors = get_vectors()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -121,6 +123,9 @@ def exports():
         with open(main_export(chat_info[0][0],input_download_format, options_input_download),'rb') as file:
             container_formats.download_button("Download", data=file, file_name=f'export.{input_download_format}', mime=f"text/{input_download_format}")
 
+def t(o):
+    print(o)
+
 @st.dialog("Configurações")
 def show_vectors():
 
@@ -145,13 +150,6 @@ def show_vectors():
     if input_prompt != project_info[0][5]:
         update_project(project_id=project_info[0][0], obj={'prompt':input_prompt})
 
-
-    if container_pasta.checkbox("Trocar banco de dados de busca?"):
-        aliases = get_alises_folders_and_id(project_info)
-        input_alias_folder = container_pasta.selectbox("Pasta compilada", aliases['aliases'], index=aliases['alias_id'], disabled=True)
-        if input_alias_folder != project_info[0][6]:
-            update_project(project_id=project_info[0][0], obj={'alias_folder':input_alias_folder})
-
     chat_info = get_chats(project_name=input_project, chat_name=input_chat)
     container_conversa = st.container(border=True)
     container_conversa.title("Conversa:")
@@ -168,8 +166,34 @@ def show_vectors():
     input_upload_file = container_documentos.file_uploader("Upload de arquivos", accept_multiple_files=True)
 
     container_documentos.title("Documentos:")
-    for vector in vectors:
-        container_documentos.checkbox(vector)
+    vetors_projects = get_vectors(input_project)
+
+    input_vectors = container_documentos.multiselect(
+        "Selecione os documentos",
+        options=[x[1] for x in vectors],
+        default=[x[1] for x in vetors_projects]
+        )
+        
+    if container_documentos.button("Atualizar"):
+        if len(vetors_projects) == 0:
+            for v in vectors:
+                if v[1] in input_vectors:
+                    sinc_unique_project_vector(project_info[0][0], v[0], True)
+
+        else:
+            for v1 in vetors_projects:
+                if v1[1] in input_vectors:
+                    sinc_unique_project_vector(project_info[0][0], v1[0], True)
+                else:
+                    sinc_unique_project_vector(project_info[0][0], v1[0], False)
+
+            for iv in input_vectors:
+                if iv not in [v[1] for v in vetors_projects]:
+                    for v1 in vectors:
+                        if iv == v1[1]:
+                            sinc_unique_project_vector(project_info[0][0], v1[0], True)
+                            break
+
 
 project_info = get_projects(where={'name':input_project})
 chat_info = get_chats(project_name=input_project, chat_name=input_chat)

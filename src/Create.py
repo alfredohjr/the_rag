@@ -4,13 +4,12 @@ from langchain_community.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer
 
 from .LoadDocuments import load_documents
-from .Metadata import get_metadata
 
-def vector_store_create():
+def vector_store_create(model_name:str=None):
 
     start = datetime.datetime.now()
 
-    data = load_documents()
+    data = load_documents(model_name=model_name)
 
     embeddings = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
