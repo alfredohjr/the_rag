@@ -100,7 +100,10 @@ def update(table, obj, obj_id, prefix='rag_', update_deleted=False):
 
     list_update = ', '.join(list_update)
 
-    update_command = f"update {prefix}{table} set {list_update} where id = '{obj_id}'" + '' if update_deleted else ' and active = 1'
+    update_command = f"update {prefix}{table} set {list_update} where id = '{obj_id}'"
+    if update_deleted is False:
+        update_command += ' and active = 1'
+    print(update_command)
 
     log_uuid = str(uuid4())
     timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -278,6 +281,10 @@ def create_vectors():
     
     path = 'tmp/vector_files'
     vectors = get_vectors()
+
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
     for file in os.listdir(path):
         if not file.endswith('.json'):
             continue

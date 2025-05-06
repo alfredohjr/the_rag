@@ -10,6 +10,7 @@ load_dotenv()
 
 from .Load import load_model
 from .Config import config_load
+from .Metadata import get_metadata
 
 config = config_load()
 
@@ -106,6 +107,12 @@ def main_ask_gemini(question:str, history:list=None):
     return {'response' : response.text} 
 
 def main_ask(question:str, project_info:list, chat_info:list, history:list=None):
+
+    if question.startswith('/'):
+        return {
+            'context' : 'função interna',
+            'response' : call_internal(question)
+        }
 
     project_info = project_info[0]
     chat_info = chat_info[0]
@@ -285,3 +292,15 @@ def auto_task(file=None,save_data=True):
         if save_data:
             with open(f'{path}/question_{index+1}_{n}.md','w', encoding='utf-8') as f:
                 f.write(f'File : {file}\n\nQuestion : {question}\nDate : {n_format}\n\n<div style="padding:24px;font-size:12px">\nContext : \n\n{context}\n</div>\n\nResponse : \n\n{response}')
+
+
+def call_internal(prompt):
+
+    if prompt.split()[0] == '/vectors':
+        vector_store = load_model()
+        metadatas = get_metadata(vector_store)
+        sources = metadatas['sources']
+        sources = ' \r\n * '.join(sources)
+        return f"Os arquivos que fazem parte deste vector_store são: \r\n * {sources}"
+    
+    return "Função não encontrada."

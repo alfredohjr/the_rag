@@ -123,8 +123,6 @@ def exports():
         with open(main_export(chat_info[0][0],input_download_format, options_input_download),'rb') as file:
             container_formats.download_button("Download", data=file, file_name=f'export.{input_download_format}', mime=f"text/{input_download_format}")
 
-def t(o):
-    print(o)
 
 @st.dialog("Configurações")
 def show_vectors():
