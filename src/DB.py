@@ -9,19 +9,22 @@ from .Config import get_debug, get_alias
 
 DEBUG = get_debug()
 
-DB_FILE = 'the_rag.db'
+DB_FILE = 'the_rag_v2.db'
 
 def check_database():
 
     con = sqlite3.connect(DB_FILE)
 
-    create_project = """create table if not exists rag_project(id varchar(50), name varchar(50) unique, language varchar(30), template_file varchar(100), active boolean default true, created_at datetime, updated_at datetime)"""
+    migrations = []
+
+    create_project = """create table if not exists rag_project(id varchar(50), name varchar(50), language varchar(30), template_file varchar(100), active boolean default true, created_at datetime, updated_at datetime)"""
     create_vector = """create table if not exists rag_vector(id varchar(50), name varchar(50), file varchar(250), active boolean default true, created_at datetime, updated_at datetime)"""
     create_project_vector = """create table if not exists rag_project_vetor(id varchar(50), project_id varchar(50), vector_id varchar(50), active boolean default true, created_at datetime, updated_at datetime)"""
-    create_chat = """create table if not exists rag_chat(id varchar(50), name varchar(50) unique, active boolean default true, project_id varchar(50), created_at datetime, updated_at datetime)"""
+    create_chat = """create table if not exists rag_chat(id varchar(50), name varchar(50), active boolean default true, project_id varchar(50), created_at datetime, updated_at datetime)"""
     create_history = """create table if not exists rag_chat_history(id varchar(50), chat_id varchar(50), role varchar(30), content text, context text, active boolean default true, score int default -1, created_at datetime, updated_at datetime)"""
 
     migration_1 = [create_project, create_vector, create_project_vector, create_chat, create_history]
+    migrations += migration_1
 
     create_config = """create table if not exists rag_config(key varchar(100) unique, value text, description text, active boolean default true, created_at datetime, updated_at datetime)"""
     create_log = """create table if not exists rag_log(key varchar(100) unique, value text, active boolean default true, created_at datetime, updated_at datetime)"""
@@ -30,38 +33,44 @@ def check_database():
     add_column_chat_history = """alter table rag_chat add column history int default 20"""
 
     migration_2 = [create_config, create_log, add_column_project_prompt, add_column_chat_k, add_column_chat_history]
-    migration_2 += migration_1
+    migrations += migration_2
 
     add_column_config_id = """alter table rag_config add column id varchar(50)"""
     add_column_log_id = """alter table rag_log add column id varchar(50)"""
 
     migration_3 = [add_column_config_id, add_column_log_id]
-    migration_3 += migration_2
+    migrations += migration_3
 
     add_column_project_save_json = """alter table rag_project add column save_json boolean default 1"""
 
     migration_4 = [add_column_project_save_json]
-    migration_4 += migration_3
+    migrations += migration_4
 
     add_column_project_alias_folder = """alter table rag_project add column alias_folder varchar(50) default 'theprince'"""
 
     migration_5 = [add_column_project_alias_folder]
-    migration_5 += migration_4
+    migrations += migration_5
 
     add_column_vector_description = """alter table rag_vector add column description"""
     
     migration_6 = [add_column_vector_description]
-    migration_6 += migration_5
+    migrations += migration_6
 
-    migrations = migration_6
+    add_project_default = "insert into rag_project(id, name, language) select '19900629','Main','english' where not exists(select 1 from rag_project where name like 'Main')"
+    add_project_default = "insert into rag_chat(id, name, project_id) select '19900629','The Prince','19900629' where not exists(select 1 from rag_chat where name like 'The Prince')"
+
+    migration_7 = [add_project_default]
+    migrations += migration_7
 
     cur = con.cursor()
     for command in migrations:
         try:
             cur.execute(command)
+            cur.execute('commit')
         except Exception as e:
             print(e)
     cur.close()
+
     con.close()
 
     create_vectors()
@@ -165,6 +174,9 @@ def create_project(name):
         if n in string.ascii_lowercase:
             alias_folder += n
 
+    if not os.path.isdir(f'tmp/{alias_folder}_documents'):
+        os.makedirs(f'tmp/{alias_folder}_documents')
+        
     create(table='project', obj={'name':name,'alias_folder':alias_folder})
 
 

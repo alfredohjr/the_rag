@@ -8,14 +8,16 @@ from .Config import config_load
 from .LoadDocuments import load_documents
 from .Metadata import get_metadata
 
-def vector_store_update():
+def vector_store_update(model_name:str=None):
 
     start = datetime.datetime.now()
 
     vector_store = load_model()
 
-    config = config_load()
-    model_name = config["DEFAULT"]["The_model"]
+    if model_name is None:
+        config = config_load()
+        model_name = config["DEFAULT"]["The_model"]
+        
     path_documents = f"tmp/{model_name}_documents"
 
     metadatas = get_metadata(vector_store)

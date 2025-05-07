@@ -11,6 +11,9 @@ def vector_store_create(model_name:str=None):
 
     data = load_documents(model_name=model_name)
 
+    if len(data["documents"]) == 0:
+        return None
+
     embeddings = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
     texts = [x.page_content for x in data["documents"]]

@@ -2,12 +2,13 @@ import os
 import json
 from collections import defaultdict
 from langchain.schema import Document
+import shutil
 
 from .Load import load_model
-from .Save import model_save
+from .Save import model_save, run as run_model_save
 from .Config import config_load
 from .Metadata import get_metadata
-from .DB import get_project_vectors
+from .DB import get_vectors
 
 PATH = 'tmp/vector_files'
 
@@ -37,10 +38,22 @@ def vector_store_split_database(model_name:str=None):
 
     docs = metadatas['texts']
     vectors = metadatas['vectors']
+    sources = metadatas['sources']
 
     group_by_file = defaultdict(list)
 
-    for doc, vec in zip(docs, vectors):
+    for doc, vec, source in zip(docs, vectors, sources):
+
+        print(source)
+
+        execute = True
+        for file in os.listdir(PATH):
+            if file.find(source) >= 0:
+                execute = False
+         
+        if execute is False:
+            continue
+
         filename = doc.metadata.get("source", "desconhecido")
         group_by_file[filename].append({
             "text": doc.page_content,
@@ -60,7 +73,6 @@ def vector_store_merge_database(database_files:list = None, model_name:str=None)
     if not os.path.isdir(PATH):
         os.makedirs(PATH)
 
-    database_files = []
     if model_name is None:
         config = config_load()
         model_name = config["DEFAULT"]["The_model"]
@@ -69,9 +81,6 @@ def vector_store_merge_database(database_files:list = None, model_name:str=None)
             return None
         
         database_files = config[model_name]['documents'].split('|')
-    else:
-        pass
-        #database_files = []
     
     vector_store = load_model(model_name=model_name)
 
@@ -81,7 +90,7 @@ def vector_store_merge_database(database_files:list = None, model_name:str=None)
 
     path = 'tmp/vector_files'
     for file in database_files:
-        full_file_path = f"{path}/{file}.json"
+        full_file_path = f"{path}/{file}"
         if not os.path.isfile(full_file_path):
             continue
         
@@ -100,13 +109,15 @@ def vector_store_merge_database(database_files:list = None, model_name:str=None)
 
     vector_path_save_list_files()
 
-def sinc_vector_db_by_database():
+def sinc_vector_db_by_database(project_info:list[list]):
 
-    # pegar data de ultima atualização
-    # ver se tem projetos atualizados depois
-    # salvar! se precisar
-    # fazer o split, se precisar
-    # fazer o merge se precisar
-    # Atualizar valores
+    shutil.rmtree(f'tmp/{project_info[0][6]}_faiss_index')
 
-    pass
+    run_model_save(option='save', model_name=project_info[0][6])
+
+    vectors = get_vectors(project_info[0][1])
+    vector_files = [x[2] for x in vectors]
+
+    vector_store_merge_database(vector_files, project_info[0][6])
+
+    vector_store_split_database(project_info[0][6])    

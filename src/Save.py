@@ -26,8 +26,8 @@ def run(option='append', model_name:str=None):
     model_path = f"tmp/{model_name}_faiss_index"
     if os.path.isdir(model_path):
         if option == 'append':
-            model_save(vector_store=vector_store_update(), model_name=model_name)
+            model_save(vector_store=vector_store_update(model_name), model_name=model_name)
             return
 
     if option in ['save','append']:
-        model_save(vector_store=vector_store_create(), model_name=model_name)
+        model_save(vector_store=vector_store_create(model_name), model_name=model_name)

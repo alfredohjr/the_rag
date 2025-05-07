@@ -1,9 +1,11 @@
 import streamlit as st
 import time
+import os
 
 from src.Ask import main_ask
-from src.Config import list_projects, list_file_extensions_allowed
+from src.Config import list_file_extensions_allowed
 from src.Export import main_export
+from src.SplitVectorDatabases import sinc_vector_db_by_database
 from src.DB import (
     check_database, 
     get_projects, 
@@ -123,6 +125,8 @@ def exports():
         with open(main_export(chat_info[0][0],input_download_format, options_input_download),'rb') as file:
             container_formats.download_button("Download", data=file, file_name=f'export.{input_download_format}', mime=f"text/{input_download_format}")
 
+project_info = get_projects(where={'name':input_project})
+chat_info = get_chats(project_name=input_project, chat_name=input_chat)
 
 @st.dialog("Configurações")
 def show_vectors():
@@ -163,6 +167,14 @@ def show_vectors():
     container_documentos.write(f"Extensões permitidas : {', '.join(list_file_extensions_allowed())}")
     input_upload_file = container_documentos.file_uploader("Upload de arquivos", accept_multiple_files=True)
 
+    if len(input_upload_file) > 0:
+        for input_file in input_upload_file:
+            if os.path.isfile(f"tmp/{project_info[0][6]}_documents/{input_file.name}"):
+                continue
+            with open(f"tmp/{project_info[0][6]}_documents/{input_file.name}",'wb') as f:
+                f.write(input_file.getvalue())
+        
+
     container_documentos.title("Documentos:")
     vetors_projects = get_vectors(input_project)
 
@@ -192,9 +204,9 @@ def show_vectors():
                             sinc_unique_project_vector(project_info[0][0], v1[0], True)
                             break
 
-
-project_info = get_projects(where={'name':input_project})
-chat_info = get_chats(project_name=input_project, chat_name=input_chat)
+    if container_documentos.button("Sincronizar banco de dados"):
+        with st.spinner("Sincronizando"):
+            sinc_vector_db_by_database(project_info)
 
 if input_chat:
     if st.sidebar.button("Configurações"):
