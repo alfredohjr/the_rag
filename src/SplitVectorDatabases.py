@@ -42,19 +42,21 @@ def vector_store_split_database(model_name:str=None):
 
     group_by_file = defaultdict(list)
 
-    for doc, vec, source in zip(docs, vectors, sources):
-
-        print(source)
+    for doc, vec in zip(docs, vectors):
 
         execute = True
+
+        filename = doc.metadata.get("source", "desconhecido")
+        filename_2 = '.'.join(filename.split('.')[:-1])
+
         for file in os.listdir(PATH):
-            if file.find(source) >= 0:
+            if file.find(filename_2) >= 0:
                 execute = False
-         
+                break
+        
         if execute is False:
             continue
 
-        filename = doc.metadata.get("source", "desconhecido")
         group_by_file[filename].append({
             "text": doc.page_content,
             "metadata": doc.metadata,
@@ -62,6 +64,7 @@ def vector_store_split_database(model_name:str=None):
         })
 
     for name, chunks in group_by_file.items():
+        print(f'salvando vetor : {name}')
         name = name.split('/')[-1].split('.')[:-1]
         name = '.'.join(name)
         with open(f"{PATH}/{name}.json", "w", encoding="utf-8") as f:
@@ -115,9 +118,13 @@ def sinc_vector_db_by_database(project_info:list[list]):
 
     run_model_save(option='save', model_name=project_info[0][6])
 
+    vector_store_split_database(project_info[0][6])    
+
     vectors = get_vectors(project_info[0][1])
     vector_files = [x[2] for x in vectors]
 
     vector_store_merge_database(vector_files, project_info[0][6])
 
-    vector_store_split_database(project_info[0][6])    
+    documents = f'tmp/{project_info[0][6]}_documents'
+    for file in os.listdir(documents):
+        os.remove(f'{documents}/{file}')

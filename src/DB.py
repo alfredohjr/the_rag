@@ -112,7 +112,6 @@ def update(table, obj, obj_id, prefix='rag_', update_deleted=False):
     update_command = f"update {prefix}{table} set {list_update} where id = '{obj_id}'"
     if update_deleted is False:
         update_command += ' and active = 1'
-    print(update_command)
 
     log_uuid = str(uuid4())
     timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')

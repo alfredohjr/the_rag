@@ -111,7 +111,7 @@ def main_ask(question:str, project_info:list, chat_info:list, history:list=None)
     if question.startswith('/'):
         return {
             'context' : 'função interna',
-            'response' : call_internal(question)
+            'response' : call_internal(question, project_info)
         }
 
     project_info = project_info[0]
@@ -294,10 +294,10 @@ def auto_task(file=None,save_data=True):
                 f.write(f'File : {file}\n\nQuestion : {question}\nDate : {n_format}\n\n<div style="padding:24px;font-size:12px">\nContext : \n\n{context}\n</div>\n\nResponse : \n\n{response}')
 
 
-def call_internal(prompt):
+def call_internal(prompt, project_info):
 
     if prompt.split()[0] == '/vectors':
-        vector_store = load_model()
+        vector_store = load_model(project_info[0][6])
         metadatas = get_metadata(vector_store)
         sources = metadatas['sources']
         sources = ' \r\n * '.join(sources)

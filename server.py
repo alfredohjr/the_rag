@@ -240,4 +240,3 @@ if prompt := st.chat_input("Digite sua mensagem:", disabled=True if input_chat i
                 context=response["context"].replace("'",''))
             st.write_stream(stream_data(response["response"]))
             input_feedback = st.feedback("thumbs")
-            print(input_feedback)
