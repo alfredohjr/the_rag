@@ -114,7 +114,8 @@ def vector_store_merge_database(database_files:list = None, model_name:str=None)
 
 def sinc_vector_db_by_database(project_info:list[list]):
 
-    shutil.rmtree(f'tmp/{project_info[0][6]}_faiss_index')
+    if os.path.isdir(f'tmp/{project_info[0][6]}_faiss_index'):
+        shutil.rmtree(f'tmp/{project_info[0][6]}_faiss_index')
 
     run_model_save(option='save', model_name=project_info[0][6])
 

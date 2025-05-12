@@ -57,9 +57,9 @@ def check_database():
     migrations += migration_6
 
     add_project_default = "insert into rag_project(id, name, language) select '19900629','Main','english' where not exists(select 1 from rag_project where name like 'Main')"
-    add_project_default = "insert into rag_chat(id, name, project_id) select '19900629','The Prince','19900629' where not exists(select 1 from rag_chat where name like 'The Prince')"
+    add_chat_default = "insert into rag_chat(id, name, project_id) select '19900629','The Prince','19900629' where not exists(select 1 from rag_chat where name like 'The Prince')"
 
-    migration_7 = [add_project_default]
+    migration_7 = [add_project_default,add_chat_default]
     migrations += migration_7
 
     cur = con.cursor()
