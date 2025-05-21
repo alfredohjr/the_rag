@@ -11,6 +11,7 @@ load_dotenv()
 from .Load import load_model
 from .Config import config_load
 from .Metadata import get_metadata
+from .LLMs import ask_to_local_ollama_qwen3_06b
 
 config = config_load()
 
@@ -141,6 +142,7 @@ def main_ask(question:str, project_info:list, chat_info:list, history:list=None)
     response = {}
     response['context'] = context
     response['response'] = main_ask_gemini(question=question, history=history)['response']
+    #response['response'] = ask_to_local_ollama_qwen3_06b(question=question, history=history)['response']
     return response
 
 def ask_get(question=None):
